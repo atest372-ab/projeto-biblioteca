@@ -19,8 +19,8 @@
         <div class="flex-none">
             <ul class="menu menu-horizontal px-1 font-semibold">
                 <li><a href="{{ route('dashboard') }}">Dashboard</a></li>
-                <li><a href="{{ route('livros.index') }}">Livros</a></li>
-                <li><a href="{{ route('requisicoes.index') }}">Requisições</a></li>
+                <li><a href="#">Livros</a></li>
+                <li><a href="#">Requisições</a></li>
             </ul>
         </div>
     </div>
@@ -31,30 +31,33 @@
             <div class="stats shadow bg-blue-600 text-white">
                 <div class="stat">
                     <div class="stat-title text-blue-100 uppercase text-xs font-bold">Requisições Ativas</div>
-                    <div class="stat-value">0</div>
+                    <div class="stat-value">{{ \App\Models\Requisicao::whereNull('data_rececao_real')->count() }}</div>
                 </div>
             </div>
             
             <div class="stats shadow bg-purple-600 text-white">
                 <div class="stat">
                     <div class="stat-title text-purple-100 uppercase text-xs font-bold">Últimos 30 dias</div>
-                    <div class="stat-value">0</div>
+                    <div class="stat-value">{{ \App\Models\Requisicao::where('created_at', '>=', now()->subDays(30))->count() }}</div>
                 </div>
             </div>
 
             <div class="stats shadow bg-emerald-600 text-white">
                 <div class="stat">
                     <div class="stat-title text-emerald-100 uppercase text-xs font-bold">Entregues Hoje</div>
-                    <div class="stat-value">0</div>
+                    <div class="stat-value">{{ \App\Models\Requisicao::whereDate('data_rececao_real', now())->count() }}</div>
                 </div>
             </div>
         </div>
 
         <div class="card bg-base-100 shadow-xl">
             <div class="card-body">
+                @if(session('success'))
+                    <div class="alert alert-success mb-4 text-white font-bold">{{ session('success') }}</div>
+                @endif
+
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="card-title text-2xl font-bold text-gray-700">Catálogo de Livros</h2>
-                    
                     @if(Auth::user()->role === 'admin')
                         <button class="btn btn-primary btn-sm">+ Novo Livro</button>
                     @endif
@@ -87,6 +90,5 @@
             </div>
         </div>
     </div>
-
 </body>
 </html>

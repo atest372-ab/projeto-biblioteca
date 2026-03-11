@@ -23,7 +23,7 @@
                 </div>
             </div>
 
-            <form action="#" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('requisicao.enviar', $id) }}" method="POST" enctype="multipart/form-data"> 
                 @csrf
                 <div class="form-control w-full mb-6">
                     <label class="label">

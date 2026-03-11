@@ -1,26 +1,25 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\RequisicaoController;
 
 Route::view('/', 'welcome')->name('home');
 
-// Rota de Teste (Podes manter ou apagar depois)
-Route::view('/teste', 'teste');
-
 Route::middleware(['auth', 'verified'])->group(function () {
-    // Dashboard Principal
-    Route::view('dashboard', 'dashboard')->name('dashboard');
+    // Dashboard
+    Route::get('dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
     
     // Rotas de Visualização
     Route::view('livros', 'livros')->name('livros.index');
     Route::view('autores', 'autores')->name('autores.index');
     Route::view('requisicoes', 'requisicoes')->name('requisicoes.index');
 
-    // NOVA ROTA: Formulário de Requisição (Passando um ID de exemplo por enquanto)
+    // REQUISIÇÕES: O formulário e a ação de salvar
     Route::get('/livro/{id}/requisitar', function ($id) {
         return view('requisitar', ['id' => $id]);
     })->name('livro.requisitar');
-    
-    // Futuros Controllers
-    // Route::resource('requisicoes', App\Http\Controllers\RequisicaoController::class);
+
+    Route::post('/livro/{id}/requisitar', [RequisicaoController::class, 'store'])->name('requisicao.enviar');
 });
