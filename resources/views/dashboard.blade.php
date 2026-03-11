@@ -1,33 +1,92 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt" data-theme="light">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard - Biblioteca</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inovcorp - Sistema Biblioteca</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 p-10">
-    <div class="max-w-4xl mx-auto bg-white shadow rounded-lg p-6">
-        <h1 class="text-2xl font-bold mb-4">Gestão da Biblioteca</h1>
-        <p class="mb-6 text-gray-600">Dados protegidos com encriptação AES-256.</p>
+<body class="bg-base-200 min-h-screen">
 
-        <table class="w-full text-left border-collapse">
-            <thead>
-                <tr class="bg-gray-50 uppercase text-xs">
-                    <th class="p-3 border-b">Título</th>
-                    <th class="p-3 border-b">ISBN (Cifrado)</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td class="p-3 border-b align-middle">O Senhor dos Anéis</td>
-                    <td class="p-3 border-b align-middle font-mono text-xs text-blue-600">eyJpdiI6Ik93S...</td>
-                </tr>
-                <tr>
-                    <td class="p-3 border-b align-middle">Harry Potter</td>
-                    <td class="p-3 border-b align-middle font-mono text-xs text-blue-600">eyJpdiI6IlFvT...</td>
-                </tr>
-            </tbody>
-        </table>
+    <div class="navbar bg-primary text-primary-content shadow-lg px-4 md:px-8">
+        <div class="flex-1">
+            <a class="btn btn-ghost text-xl font-black italic tracking-tighter">INOVCORP LIB</a>
+        </div>
+        <div class="flex-none text-sm opacity-70 mr-4">
+            Perfil: <span class="badge badge-secondary badge-outline uppercase">{{ Auth::user()->role }}</span>
+        </div>
+        <div class="flex-none">
+            <ul class="menu menu-horizontal px-1 font-semibold">
+                <li><a href="{{ route('dashboard') }}">Dashboard</a></li>
+                <li><a href="{{ route('livros.index') }}">Livros</a></li>
+                <li><a href="{{ route('requisicoes.index') }}">Requisições</a></li>
+            </ul>
+        </div>
     </div>
+
+    <div class="p-4 md:p-8 max-w-7xl mx-auto">
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="stats shadow bg-blue-600 text-white">
+                <div class="stat">
+                    <div class="stat-title text-blue-100 uppercase text-xs font-bold">Requisições Ativas</div>
+                    <div class="stat-value">0</div>
+                </div>
+            </div>
+            
+            <div class="stats shadow bg-purple-600 text-white">
+                <div class="stat">
+                    <div class="stat-title text-purple-100 uppercase text-xs font-bold">Últimos 30 dias</div>
+                    <div class="stat-value">0</div>
+                </div>
+            </div>
+
+            <div class="stats shadow bg-emerald-600 text-white">
+                <div class="stat">
+                    <div class="stat-title text-emerald-100 uppercase text-xs font-bold">Entregues Hoje</div>
+                    <div class="stat-value">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="card-title text-2xl font-bold text-gray-700">Catálogo de Livros</h2>
+                    
+                    @if(Auth::user()->role === 'admin')
+                        <button class="btn btn-primary btn-sm">+ Novo Livro</button>
+                    @endif
+                </div>
+                
+                <div class="divider"></div>
+                
+                <div class="overflow-x-auto">
+                    <table class="table table-zebra w-full">
+                        <thead class="bg-base-200">
+                            <tr>
+                                <th>ISBN (Cifrado)</th>
+                                <th>Título</th>
+                                <th>Estado</th>
+                                <th class="text-right">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code class="text-xs text-blue-600">eyJpdiI6Ik93S...</code></td>
+                                <td class="font-bold">O Senhor dos Anéis</td>
+                                <td><div class="badge badge-success">Disponível</div></td>
+                                <td class="text-right">
+                                    <a href="{{ route('livro.requisitar', 1) }}" class="btn btn-primary btn-xs">Requisitar</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>
