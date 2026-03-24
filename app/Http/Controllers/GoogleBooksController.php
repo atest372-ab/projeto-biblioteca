@@ -9,47 +9,41 @@ use Illuminate\Support\Facades\Crypt;
 
 class GoogleBooksController extends Controller
 {
-    /**
-     * 1. Pesquisa na API (Fase 3)
-     */
     public function search(Request $request)
     {
         $books = [];
-        
-        // Captura o termo (seja 'search' ou 'q' para evitar bugs de nomes)
-        $searchTerm = $request->input('search');
+        // Capturamos 'search' que é o que está na tua URL
+        $query = $request->input('search');
 
-        if ($searchTerm) {
-            // Chamada à API usando array de parâmetros (mais seguro para espaços e símbolos)
-            $response = Http::get("https://www.googleapis.com/books/v1/volumes", [
-                'q' => $searchTerm,
-                'maxResults' => 12,
-                'printType' => 'books'
+        if ($query) {
+            // .withoutVerifying() ignora erros de certificado SSL comuns no Windows/Herd
+            $response = Http::withoutVerifying()->get("https://www.googleapis.com/books/v1/volumes", [
+                'q' => $query,
+                'maxResults' => 20
             ]);
-            
+
+            // Se a API responder com sucesso, guardamos os itens
             if ($response->successful()) {
                 $books = $response->json()['items'] ?? [];
+            } else {
+                // Se der erro (ex: internet ou bloqueio), podes ver aqui
+                logger("Erro na API: " . $response->status());
             }
         }
-        
+
         return view('google-books.index', compact('books'));
     }
 
-    /**
-     * 2. Grava no Banco (A "Bridge" entre Fase 3 e Fase 1)
-     */
     public function import(Request $request)
     {
-        // Criamos o livro com os dados escondidos enviados pela View
         Book::create([
-            'name'          => $request->name, 
-            // Cifragem obrigatória do ISBN (Requisito 8 - Fase 1)
+            'title'         => $request->name ?? $request->title ?? 'Sem Título', 
             'isbn'          => Crypt::encryptString($request->isbn ?? '0000000000'),
             'cover_image'   => $request->cover_image,
             'bibliography'  => $request->bibliography,
             'price'         => rand(15, 49), 
         ]);
 
-        return redirect()->route('dashboard')->with('success', 'Livro importado e protegido com sucesso!');
+        return redirect()->route('dashboard')->with('success', 'Livro importado com sucesso!');
     }
 }

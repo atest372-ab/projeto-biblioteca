@@ -99,7 +99,7 @@
                                             {{ Str::limit($livro->isbn, 15) }}...
                                         </code>
                                     </td>
-                                    <td class="font-bold">{{ $livro->name }}</td>
+                                    <td class="font-bold">{{ $livro->title ?? $livro->name }}</td>
                                     <td>
                                         @php
                                             $estaRequisitado = \App\Models\Requisicao::where('book_id', $livro->id)

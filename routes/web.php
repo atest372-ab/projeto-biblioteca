@@ -18,7 +18,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     // 2. Rotas de Visualização (Menus da Fase 1)
     Route::get('livros', function () {
-        return view('dashboard'); 
+        $livros = \App\Models\Book::all();
+        return view('dashboard', compact('livros'));
     })->name('livros.index');
 
     Route::get('autores', function () {

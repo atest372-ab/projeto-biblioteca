@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Book extends Model
 {
     // Campos que podem ser preenchidos (garante que os nomes batem com a BD)
-    protected $fillable = ['isbn', 'name', 'bibliography', 'cover_image', 'price', 'publisher_id'];
+    protected $fillable = ['title', 'isbn', 'bibliography', 'cover_image', 'price', 'publisher_id'];
 
     /**
      * REQUISITO 8: Dados cifrados na base de dados
