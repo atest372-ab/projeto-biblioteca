@@ -19,8 +19,10 @@
         <div class="flex-none">
             <ul class="menu menu-horizontal px-1 font-semibold">
                 <li><a href="{{ route('dashboard') }}">Dashboard</a></li>
-                <li><a href="#">Livros</a></li>
-                <li><a href="#">Requisições</a></li>
+                <li><a href="{{ route('livros.index') }}">Livros</a></li>
+                <li><a href="{{ route('autores.index') }}">Autores</a></li>
+                <li><a href="{{ route('editoras.index') }}">Editores</a></li>
+                <li><a href="{{ route('requisicoes.index') }}">Requisições</a></li>
             </ul>
         </div>
     </div>
