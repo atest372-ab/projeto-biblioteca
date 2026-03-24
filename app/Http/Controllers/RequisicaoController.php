@@ -6,6 +6,7 @@ use App\Models\Requisicao;
 use App\Models\Book;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail; // IMPORTANTE: Adicionado para o envio de e-mail
 
 class RequisicaoController extends Controller
 {
@@ -55,13 +56,21 @@ class RequisicaoController extends Controller
             $path = $request->file('foto')->store('requisicoes', 'public');
         }
 
-        // 3. Criar a Requisição (O Model trata do número sequencial e datas via booted)
-        Requisicao::create([
+        // 3. Criar a Requisição (Adicionada a regra dos 5 dias da Fase 2)
+        $requisicao = Requisicao::create([
             'user_id' => $user->id,
             'book_id' => $book->id,
             'foto_cidadao' => $path,
+            'data_devolucao_prevista' => now()->addDays(5), // Regra de 5 dias aqui
         ]);
 
-        return redirect()->route('requisicoes.index')->with('success', 'Requisição realizada com sucesso!');
+        // 4. Envio de E-mail (Requisito 9 - Fase 2)
+        // Como o MAIL_MAILER está como 'log', o conteúdo aparecerá em storage/logs/laravel.log
+        Mail::send('emails.requisicao-confirmada', ['requisicao' => $requisicao], function ($message) use ($user) {
+            $message->to($user->email)
+                    ->subject('Confirmação de Requisição - Inovcorp Lib');
+        });
+
+        return redirect()->route('requisicoes.index')->with('success', 'Requisição realizada! O comprovante foi enviado para o seu e-mail (Sistema Log).');
     }
 }
