@@ -13,6 +13,12 @@ return new class extends Migration
     {
         Schema::create('reviews', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('book_id')->constrained()->onDelete('cascade');
+            $table->text('comment');
+            $table->integer('rating')->default(5); // Opcional: 1 a 5 estrelas
+            $table->enum('status', ['suspenso', 'ativo', 'recusado'])->default('suspenso');
+            $table->text('rejection_reason')->nullable(); // Justificação do Admin
             $table->timestamps();
         });
     }

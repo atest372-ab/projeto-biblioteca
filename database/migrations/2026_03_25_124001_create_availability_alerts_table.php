@@ -13,6 +13,9 @@ return new class extends Migration
     {
         Schema::create('availability_alerts', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('book_id')->constrained()->onDelete('cascade');
+            $table->boolean('is_notified')->default(false); // Para não enviar o email 2 vezes
             $table->timestamps();
         });
     }
