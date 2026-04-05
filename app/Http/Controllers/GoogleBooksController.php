@@ -23,7 +23,6 @@ class GoogleBooksController extends Controller
             if ($response->successful()) {
                 $books = $response->json()['items'] ?? [];
             } else {
-                // Em vez de dd(), apenas redirecionamos com um erro amigável
                 return back()->with('error', 'Não foi possível conectar à API do Google Books.');
             }
         }
@@ -31,11 +30,30 @@ class GoogleBooksController extends Controller
         return view('google-books.index', compact('books'));
     }
 
+    // DESAFIO 2: Detalhe do Livro com "Inteligência" de Relacionados
+    public function show(Book $book)
+    {
+        // Lógica: Pegar a primeira palavra com mais de 3 letras da descrição para buscar similares
+        $words = explode(' ', $book->bibliography);
+        $searchTerm = collect($words)->first(fn($word) => strlen($word) > 3) ?? $book->name;
+
+        $relatedBooks = Book::where('id', '!=', $book->id)
+            ->where(function($q) use ($searchTerm) {
+                $q->where('bibliography', 'LIKE', "%{$searchTerm}%")
+                  ->orWhere('name', 'LIKE', "%{$searchTerm}%");
+            })
+            ->limit(4)
+            ->get();
+
+        return view('books.show', compact('book', 'relatedBooks'));
+    }
+
     public function import(Request $request)
     {
         try {
-            \App\Models\Book::create([
-                'name'          => $request->name,
+            // Criar o livro
+            $book = Book::create([
+                'title'          => $request->name,
                 'isbn'          => $request->isbn,
                 'cover_image'   => $request->cover_image,
                 'bibliography'  => $request->bibliography,
@@ -43,10 +61,14 @@ class GoogleBooksController extends Controller
                 'publisher_id'  => 1,
             ]);
 
+            // Associar ao autor padrão (ID 1) para não dar erro na Dashboard
+            $book->authors()->attach(1);
+
             return redirect()->route('dashboard')->with('success', 'Livro importado com sucesso!');
+        
         } catch (\Exception $e) {
-            // Em vez de dd(), usamos o logger ou voltamos com erro
-            return back()->with('error', 'Erro ao importar livro: ' . $e->getMessage());
+            // Se falhar, o Laravel vai PARAR e mostrar o erro exato na tela
+            dd("ERRO NA GRAVAÇÃO: " . $e->getMessage());
         }
     }
 }

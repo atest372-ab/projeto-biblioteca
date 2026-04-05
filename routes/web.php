@@ -1,86 +1,88 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Http\Request; // ADICIONADO: Importante para a pesquisa
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
+
+// Controllers
 use App\Http\Controllers\RequisicaoController;
 use App\Http\Controllers\GoogleBooksController;
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\AlertController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\CheckoutController;
+
+// Outros
 use App\Exports\BooksExport;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Models\Book;
+use App\Models\Order;
+use App\Models\Cart;
 
 Route::view('/', 'welcome')->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     
-    // 1. DASHBOARD E LISTAGEM (ATUALIZADO COM LÓGICA DE PESQUISA)
+    // 1. DASHBOARD E LISTAGEM
     Route::get('dashboard', function (Request $request) {
         $search = $request->input('search');
-
-        // Se houver pesquisa, filtra. Se não, mostra todos.
+        
         $livros = Book::when($search, function ($query, $search) {
-            return $query->where('name', 'like', "%{$search}%")
+            return $query->where('title', 'like', "%{$search}%") 
                          ->orWhere('isbn', 'like', "%{$search}%");
         })->get();
 
-        // Contagem de reviews para o badge do Admin
         $pendentes = \App\Models\Review::where('status', 'suspenso')->count();
 
         return view('dashboard', compact('livros', 'pendentes'));
     })->name('dashboard');
+
+    // ROTAS AUXILIARES
+    Route::get('/autores', function () { return view('autores'); })->name('autores.index');
+    Route::get('/editoras', function () { return view('editoras'); })->name('editoras.index');
+    Route::get('livros', function () { return redirect()->route('dashboard'); })->name('livros.index');
     
-    Route::get('livros', function (Request $request) {
-        $search = $request->input('search');
-        
-        $livros = Book::when($search, function ($query, $search) {
-            return $query->where('name', 'like', "%{$search}%");
-        })->get();
-
-        return view('dashboard', compact('livros'));
-    })->name('livros.index');
-
-    // DETALHES DO LIVRO
-    Route::get('/livros/{book}', function (Book $book) {
-        // Carrega as reviews ativas para o público ver
-        $reviews = $book->reviews()->where('status', 'ativo')->with('user')->get();
-        return view('livros.show', compact('book', 'reviews'));
-    })->name('livros.show');
-
-    // 2. MENUS ESTÁTICOS / VISTAS
-    Route::view('autores', 'autores')->name('autores.index');
-    Route::view('editoras', 'editoras')->name('editoras.index');
-
-    // 3. REQUISIÇÕES
+    // 2. DETALHES E REQUISIÇÕES
+    Route::get('/livros/{book}', [GoogleBooksController::class, 'show'])->name('livros.show');
     Route::get('requisicoes', [RequisicaoController::class, 'index'])->name('requisicoes.index');
-    Route::get('/livro/{id}/requisitar', function ($id) {
-        return view('requisitar', ['id' => $id]);
-    })->name('livro.requisitar');
+    Route::get('/livro/{id}/requisitar', function ($id) { return view('requisitar', ['id' => $id]); })->name('livro.requisitar');
+    
     Route::post('/enviar-requisicao/{id}', [RequisicaoController::class, 'store'])->name('requisicao.enviar');
+    Route::post('/livros/{id}/alert', [AlertController::class, 'store'])->name('livros.alert');
 
-    // 4. GOOGLE BOOKS API
+    // 3. GOOGLE BOOKS & EXPORT
     Route::get('/google-books', [GoogleBooksController::class, 'search'])->name('google.search');
     Route::post('/google-books/import', [GoogleBooksController::class, 'import'])->name('google.import');
+    Route::get('/exportar-livros', function () { return Excel::download(new BooksExport, 'livros_biblioteca.xlsx'); })->name('livros.export');
 
-    // 5. EXPORTAÇÃO EXCEL
-    Route::get('/exportar-livros', function () {
-        return Excel::download(new BooksExport, 'livros_biblioteca.xlsx');
-    })->name('livros.export');
-
-    // 6. REVIEWS - LADO DO CIDADÃO
+    // 4. REVIEWS E DELETE
     Route::post('/books/{book}/reviews', [ReviewController::class, 'store'])->name('reviews.store');
-
-    // 7. GESTÃO DE LIVROS - ELIMINAR
     Route::delete('/livros/{book}', function (Book $book) {
         $book->delete();
-        return redirect()->route('dashboard')->with('success', 'Livro removido com sucesso!');
+        return redirect()->route('dashboard')->with('success', 'Livro removido!');
     })->name('livros.destroy');
+
+    // 5. CARRINHO & CHECKOUT (FASE 5)
+    Route::get('/carrinho', [CartController::class, 'index'])->name('cart.index');
+    Route::post('/carrinho/add/{id}', [CartController::class, 'store'])->name('cart.add');
+    Route::delete('/carrinho/remove/{id}', [CartController::class, 'destroy'])->name('cart.remove');
+    Route::post('/checkout/processar', [CheckoutController::class, 'process'])->name('checkout.process');
+
+    // NOVA ROTA: Histórico de Pedidos do Utilizador
+    Route::get('/meus-pedidos', function () {
+        $orders = Order::where('user_id', Auth::id())->latest()->get();
+        return view('orders.index', compact('orders'));
+    })->name('orders.my-orders');
 });
 
-// 8. ADMIN MODERAÇÃO
+// 6. ADMIN (Apenas autenticados, mas aqui poderias adicionar check de role no futuro)
 Route::middleware(['auth'])->group(function () {
     Route::get('/admin/reviews', [ReviewController::class, 'index'])->name('admin.reviews.index');
     Route::patch('/admin/reviews/{review}/status', [ReviewController::class, 'updateStatus'])->name('admin.reviews.update');
-
-    // ROTA PARA ELIMINAR REVIEWS
-    Route::delete('/admin/reviews/{review}', [ReviewController::class, 'destroy'])->name('admin.reviews.destroy');
+    Route::patch('/requisicoes/{id}/entregar', [RequisicaoController::class, 'entregar'])->name('requisicoes.entregar');
+    
+    Route::get('/admin/orders', function() {
+        $orders = Order::latest()->get();
+        return view('admin.orders.index', compact('orders'));
+    })->name('admin.orders.index');
 });

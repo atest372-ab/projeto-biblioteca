@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Book extends Model
 {
-    protected $fillable = ['name', 'isbn', 'bibliography', 'cover_image', 'price', 'publisher_id'];
+    protected $fillable = ['title', 'isbn', 'bibliography', 'cover_image', 'price', 'publisher_id'];
 
     protected function casts(): array
     {

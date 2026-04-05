@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('book_notifications', function (Blueprint $table) {
+        Schema::create('order_items', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('book_id')->constrained()->onDelete('cascade');
-            $table->boolean('is_notified')->default(false);
+            $table->foreignId('order_id')->constrained()->onDelete('cascade');
+            $table->foreignId('book_id')->constrained();
+            $table->decimal('price', 10, 2); // Preço no momento da compra
             $table->timestamps();
         });
     }
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('book_notifications');
+        Schema::dropIfExists('order_items');
     }
 };
