@@ -11,27 +11,34 @@ class CheckoutController extends Controller
 {
     public function process(Request $request)
     {
-        // 1. Ir buscar os itens do carrinho do utilizador logado
-        $cartItems = Cart::where('user_id', Auth::id())->with('book')->get();
+        // 1. Validar se a morada foi preenchida
+        $request->validate([
+            'address' => 'required|string|max:255',
+        ]);
+
+        // 2. Ir buscar os itens do carrinho do utilizador logado
+        $cartItems = Cart::where('user_id', Auth::id())->get();
 
         if ($cartItems->isEmpty()) {
             return redirect()->route('dashboard')->with('error', 'O seu carrinho está vazio!');
         }
 
-        // 2. Calcular o total (usando os 15€ fixos ou o preço do livro se tiveres)
+        // 3. Calcular o total (15€ fixos por item)
         $total = $cartItems->count() * 15;
 
-        // 3. Criar a encomenda (Order)
+        // 4. Criar a encomenda (Order) incluindo a morada
         $order = Order::create([
             'user_id' => Auth::id(),
             'total'   => $total,
-            'status'  => 'pendente', // Status inicial
+            'address' => $request->address, // <--- Aqui gravamos a morada vinda do formulário
+            'status'  => 'pendente',
         ]);
 
-        // 4. Limpar o carrinho (Importante para a persistência)
+        // 5. Limpar o carrinho da Base de Dados e da Sessão
         Cart::where('user_id', Auth::id())->delete();
+        session()->forget('cart');
 
-        // 5. Redirecionar com mensagem de sucesso
-        return redirect()->route('dashboard')->with('success', "Compra finalizada! Pedido #{$order->id} registado com sucesso.");
+        // 6. Redirecionar para o histórico de pedidos
+        return redirect()->route('orders.my-orders')->with('success', "Pedido #{$order->id} registado! Proceda ao pagamento.");
     }
 }

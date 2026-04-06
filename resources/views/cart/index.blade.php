@@ -76,10 +76,18 @@
                             <span>{{ count($cartItems) * 15 }}.00€</span>
                         </div>
 
-                        {{-- FORMULÁRIO DE FINALIZAÇÃO (PASSO 3) --}}
-                        <form action="{{ route('checkout.process') }}" method="POST">
+                        {{-- NOVO FORMULÁRIO COM MORADA --}}
+                        <form action="{{ route('checkout.process') }}" method="POST" class="space-y-4">
                             @csrf
-                            <button type="submit" class="btn btn-primary btn-block text-white font-bold">
+                            <div class="form-control w-full">
+                                <label class="label">
+                                    <span class="label-text font-bold text-gray-700">Morada de Entrega</span>
+                                </label>
+                                <input type="text" name="address" placeholder="Rua, Nº, Código Postal, Cidade" 
+                                       class="input input-bordered w-full focus:border-primary" required>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary btn-block text-white font-bold shadow-lg">
                                 Finalizar Compra
                             </button>
                         </form>

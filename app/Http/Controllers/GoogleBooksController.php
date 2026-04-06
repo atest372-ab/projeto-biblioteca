@@ -51,7 +51,9 @@ class GoogleBooksController extends Controller
     public function import(Request $request)
     {
         try {
-            // Criar o livro
+            \App\Models\Publisher::firstOrCreate(['id' => 1], ['name' => 'Editora Geral']);
+            $autor = \App\Models\Author::firstOrCreate(['id' => 1], ['name' => 'Autor Desconhecido']);
+
             $book = Book::create([
                 'title'          => $request->name,
                 'isbn'          => $request->isbn,
@@ -62,7 +64,7 @@ class GoogleBooksController extends Controller
             ]);
 
             // Associar ao autor padrão (ID 1) para não dar erro na Dashboard
-            $book->authors()->attach(1);
+            $book->authors()->attach($autor->id);
 
             return redirect()->route('dashboard')->with('success', 'Livro importado com sucesso!');
         

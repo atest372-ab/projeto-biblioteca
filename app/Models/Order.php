@@ -9,12 +9,9 @@ class Order extends Model
 {
     use HasFactory;
 
-    // ADICIONA ESTA LINHA:
-    protected $fillable = ['user_id', 'total', 'status'];
+    // Atualizado para incluir a morada e o ID do Stripe
+    protected $fillable = ['user_id', 'total', 'status', 'address', 'stripe_id'];
 
-    /**
-     * Relacionamento: Uma encomenda pertence a um utilizador.
-     */
     public function user()
     {
         return $this->belongsTo(User::class);
