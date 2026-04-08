@@ -7,14 +7,19 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-base-200 min-h-screen">
-    {{-- Navbar Simples --}}
     <div class="navbar bg-primary text-primary-content shadow-lg px-8">
         <div class="flex-1">
             <a href="{{ route('dashboard') }}" class="btn btn-ghost text-xl font-bold italic">INOVCORP LIB</a>
         </div>
     </div>
 
-    <div class="p-8 max-w-4xl mx-auto">
+    <div class="p-8 max-w-5xl mx-auto">
+        @if(session('success'))
+            <div class="alert alert-success mb-6 shadow-lg text-white font-bold">
+                {{ session('success') }}
+            </div>
+        @endif
+
         <div class="flex justify-between items-center mb-8">
             <h1 class="text-3xl font-black text-gray-800">Histórico de Pedidos</h1>
             <a href="{{ route('dashboard') }}" class="btn btn-ghost btn-sm">Voltar à Loja</a>
@@ -29,11 +34,12 @@
                             <th>Data</th>
                             <th>Total</th>
                             <th>Estado</th>
+                            <th class="text-right">Ação</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($orders as $order)
-                        <tr class="hover">
+                        <tr class="hover text-gray-700">
                             <td class="font-mono font-bold text-primary">#ORD-{{ $order->id }}</td>
                             <td>{{ $order->created_at->format('d/m/Y H:i') }}</td>
                             <td class="font-bold">{{ number_format($order->total, 2) }}€</td>
@@ -41,6 +47,16 @@
                                 <div class="badge {{ $order->status == 'pendente' ? 'badge-warning' : 'badge-success' }} gap-2">
                                     {{ ucfirst($order->status) }}
                                 </div>
+                            </td>
+                            <td class="text-right">
+                                <form action="{{ route('orders.cancel', $order->id) }}" method="POST" 
+                                      onsubmit="return confirm('Tem a certeza que deseja remover este pedido?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-ghost btn-xs text-error hover:bg-error/10">
+                                        Remover
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                         @endforeach
@@ -50,12 +66,8 @@
         @else
             <div class="card bg-base-100 shadow-xl border-2 border-dashed border-base-300">
                 <div class="card-body items-center text-center py-12">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 opacity-20 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
                     <h2 class="card-title opacity-60">Ainda não tem encomendas.</h2>
-                    <p class="opacity-50">Explore a biblioteca e adicione livros ao seu carrinho!</p>
-                    <div class="card-actions mt-6">
-                        <a href="{{ route('dashboard') }}" class="btn btn-primary">Ver Catálogo</a>
-                    </div>
+                    <a href="{{ route('dashboard') }}" class="btn btn-primary mt-4">Ver Catálogo</a>
                 </div>
             </div>
         @endif

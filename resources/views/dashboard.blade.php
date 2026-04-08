@@ -27,13 +27,11 @@
                     </a>
                 </li>
                 <li><a href="{{ route('dashboard') }}">Dashboard</a></li>
-                
-                {{-- NOVO: Botão Meus Pedidos --}}
                 <li><a href="{{ route('orders.my-orders') }}">Meus Pedidos</a></li>
 
-                {{-- Botão Google API (Protegido por Role) --}}
                 @if(Auth::user()->role === 'admin') 
                     <li><a href="{{ route('google.search') }}" class="bg-accent text-accent-content font-bold">Google API</a></li> 
+                    <li><a href="/admin/reviews" class="bg-warning text-warning-content font-bold">Moderar Reviews</a></li>
                 @endif
                 
                 <li><a href="{{ route('autores.index') }}">Autores</a></li>
@@ -44,10 +42,30 @@
     </div>
 
     <div class="p-4 md:p-8 max-w-7xl mx-auto">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        
+        <div class="mb-8 animate-in fade-in duration-700">
+            <h1 class="text-3xl font-black text-gray-800">Olá, {{ Auth::user()->name }}! 👋</h1>
+            <p class="text-gray-600 mt-1 italic">
+                Bem-vindo à tua biblioteca. 
+                @if(Auth::user()->role === 'admin')
+                    Tens <span class="font-bold text-primary">{{ \App\Models\Review::where('status', 'SUSPENSO')->count() }}</span> avaliações a aguardar moderação.
+                @else
+                    Tens <span class="font-bold text-secondary">{{ \App\Models\Order::where('user_id', Auth::id())->count() }}</span> encomendas registadas na tua conta.
+                @endif
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div class="stats shadow bg-blue-600 text-white"><div class="stat"><div class="stat-title text-blue-100 uppercase text-xs font-bold">Requisições Ativas</div><div class="stat-value">{{ \App\Models\Requisicao::whereNull('data_rececao_real')->count() }}</div></div></div>
             <div class="stats shadow bg-purple-600 text-white"><div class="stat"><div class="stat-title text-purple-100 uppercase text-xs font-bold">Últimos 30 dias</div><div class="stat-value">{{ \App\Models\Requisicao::where('created_at', '>=', now()->subDays(30))->count() }}</div></div></div>
             <div class="stats shadow bg-emerald-600 text-white"><div class="stat"><div class="stat-title text-emerald-100 uppercase text-xs font-bold">Entregues Hoje</div><div class="stat-value">{{ \App\Models\Requisicao::whereNotNull('data_rececao_real')->whereDate('updated_at', now())->count() }}</div></div></div>
+            
+            <div class="stats shadow bg-orange-500 text-white">
+                <div class="stat">
+                    <div class="stat-title text-orange-100 uppercase text-xs font-bold">Reviews Pendentes</div>
+                    <div class="stat-value">{{ \App\Models\Review::where('status', 'SUSPENSO')->count() }}</div>
+                </div>
+            </div>
         </div>
 
         <div class="card bg-base-100 shadow-xl">
@@ -69,13 +87,25 @@
                                 <td><code class="text-xs text-blue-600">{{ $livro->isbn }}</code></td>
                                 <td class="font-bold"><a href="{{ route('livros.show', $livro->id) }}" class="text-primary hover:underline">{{ $livro->title ?? $livro->name }}</a></td>
                                 <td><span class="badge {{ $estaRequisitado ? 'badge-error' : 'badge-success' }} text-white text-xs">{{ $estaRequisitado ? 'Indisponível' : 'Disponível' }}</span></td>
-                                <td class="text-right flex justify-end gap-2">
+                                <td class="text-right flex justify-end gap-2 items-center">
+                                    {{-- COMPRAR --}}
                                     <form action="{{ route('cart.add', $livro->id) }}" method="POST">
                                         @csrf 
                                         <button type="submit" class="btn btn-secondary btn-xs">🛒 Comprar</button>
                                     </form>
+
+                                    {{-- REQUISITAR (Se disponível) --}}
                                     @if(!$estaRequisitado) 
                                         <a href="{{ route('livro.requisitar', $livro->id) }}" class="btn btn-primary btn-xs text-white">Requisitar</a> 
+                                    @endif
+
+                                    {{-- ELIMINAR (Apenas Admin) --}}
+                                    @if(Auth::user()->role === 'admin')
+                                        <form action="{{ route('livros.destroy', $livro->id) }}" method="POST" onsubmit="return confirm('Apagar este livro?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-error btn-xs text-white">🗑️ Eliminar</button>
+                                        </form>
                                     @endif
                                 </td>
                             </tr>

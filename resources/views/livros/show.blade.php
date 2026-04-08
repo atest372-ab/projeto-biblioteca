@@ -15,16 +15,20 @@
         {{-- CARD PRINCIPAL DO LIVRO --}}
         <div class="card lg:card-side bg-base-100 shadow-xl overflow-hidden mb-10">
             <figure class="lg:w-1/3 bg-gray-200">
-                <img src="{{ $book->cover_image ?? 'https://via.placeholder.com/300x450' }}" alt="Capa" class="w-full h-full object-cover shadow-2xl" />
+                {{-- Corrigido para tentar cover_image e depois image --}}
+                <img src="{{ $book->cover_image ?? $book->image ?? 'https://via.placeholder.com/300x450' }}" alt="Capa" class="w-full h-full object-cover shadow-2xl" />
             </figure>
             <div class="card-body lg:w-2/3">
                 <h2 class="card-title text-4xl font-bold mb-2 text-gray-800">{{ $book->title ?? $book->name }}</h2>
                 <div class="badge badge-outline mb-4">ISBN: {{ $book->isbn }}</div>
-                <p class="text-gray-600 leading-relaxed text-justify mb-6">
-                    {{ $book->bibliography }}
-                </p>
+                
+                {{-- Corrigido para mostrar a descrição da Google API (description) ou a bibliografia manual --}}
+                <div class="text-gray-600 leading-relaxed text-justify mb-6 overflow-y-auto max-h-60">
+                    {!! $book->description ?? $book->bibliography ?? 'Sem descrição disponível para este exemplar.' !!}
+                </div>
+
                 <div class="card-actions justify-end mt-auto">
-                    <div class="stat-value text-primary text-2xl mr-4">{{ $book->price }}€</div>
+                    <div class="stat-value text-primary text-2xl mr-4">{{ number_format($book->price, 2) }}€</div>
                     <a href="{{ route('livro.requisitar', $book->id) }}" class="btn btn-primary">Requisitar Agora</a>
                 </div>
             </div>
@@ -34,8 +38,9 @@
 
         {{-- 1. SECÇÃO DE ENVIAR AVALIAÇÃO --}}
         <div class="mb-10">
-            @if(Auth::user()->role === 'cidadao')
-                <h3 class="text-2xl font-bold mb-6">Deixe a sua avaliação</h3>
+            {{-- Corrigido para aceitar 'user' (que definimos no Tinker) ou 'cidadao' --}}
+            @if(Auth::user()->role === 'user' || Auth::user()->role === 'cidadao')
+                <h3 class="text-2xl font-bold mb-6 text-gray-800">Deixe a sua avaliação</h3>
                 <form action="{{ route('reviews.store', $book->id) }}" method="POST" class="bg-base-100 p-8 rounded-2xl shadow-sm border border-base-300">
                     @csrf
                     <div class="form-control mb-4">
@@ -94,7 +99,7 @@
 
         {{-- 3. LIVROS RELACIONADOS --}}
         <div class="bg-base-300 p-8 rounded-3xl">
-            <h3 class="text-xl font-bold mb-6">Também poderá gostar de...</h3>
+            <h3 class="text-xl font-bold mb-6 text-gray-700">Também poderá gostar de...</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 @php
                     $relacionados = \App\Models\Book::where('id', '!=', $book->id)->take(3)->get();

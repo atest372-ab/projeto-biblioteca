@@ -40,12 +40,16 @@ class GoogleBooksController extends Controller
         $relatedBooks = Book::where('id', '!=', $book->id)
             ->where(function($q) use ($searchTerm) {
                 $q->where('bibliography', 'LIKE', "%{$searchTerm}%")
-                  ->orWhere('name', 'LIKE', "%{$searchTerm}%");
+                  ->orWhere('title', 'LIKE', "%{$searchTerm}%");
             })
             ->limit(4)
             ->get();
 
-        return view('books.show', compact('book', 'relatedBooks'));
+        return view('livros.show', [
+            'book' => $book,
+            'relatedBooks' => $relatedBooks,
+            'reviews' => $book->reviews()->where('status', 'APROVADO')->get()
+        ]);
     }
 
     public function import(Request $request)
@@ -69,8 +73,8 @@ class GoogleBooksController extends Controller
             return redirect()->route('dashboard')->with('success', 'Livro importado com sucesso!');
         
         } catch (\Exception $e) {
-            // Se falhar, o Laravel vai PARAR e mostrar o erro exato na tela
-            dd("ERRO NA GRAVAÇÃO: " . $e->getMessage());
+            // Em vez de dd, redirecionamentos com o erro para a interface
+            return back()->with('error', 'Erro na gravação: ' . $e->getMessage());
         }
     }
 }

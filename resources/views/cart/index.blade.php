@@ -36,7 +36,6 @@
 
         @if(count($cartItems) > 0)
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {{-- LISTA DE ITENS --}}
                 <div class="lg:col-span-2 space-y-4">
                     @foreach($cartItems as $item)
                     <div class="card card-side bg-base-100 shadow-sm border border-base-300">
@@ -44,13 +43,15 @@
                             <img src="{{ $item->book->cover_image ?? 'https://via.placeholder.com/150' }}" class="object-cover h-full" />
                         </figure>
                         <div class="card-body">
-                            <h2 class="card-title">{{ $item->book->title ?? $item->book->name }}</h2>
+                            <h2 class="card-title">{{ $item->book->title }}</h2>
                             <p class="text-sm opacity-60">ISBN: {{ $item->book->isbn }}</p>
                             <div class="card-actions justify-between items-center mt-4">
                                 <span class="text-xl font-bold text-primary">15.00€</span>
+                                {{-- REMOÇÃO VIA ID DO CARRINHO --}}
                                 <form action="{{ route('cart.remove', $item->id) }}" method="POST">
-                                    @csrf @method('DELETE')
-                                    <button class="btn btn-ghost btn-sm text-error">Remover</button>
+                                    @csrf 
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-ghost btn-sm text-error">Remover</button>
                                 </form>
                             </div>
                         </div>
@@ -58,52 +59,31 @@
                     @endforeach
                 </div>
 
-                {{-- RESUMO DO PEDIDO --}}
                 <div class="card bg-base-100 shadow-xl h-fit border-t-4 border-primary">
                     <div class="card-body">
                         <h2 class="card-title mb-4">Resumo</h2>
-                        <div class="flex justify-between mb-2">
-                            <span>Subtotal</span>
-                            <span>{{ count($cartItems) * 15 }}.00€</span>
-                        </div>
-                        <div class="flex justify-between mb-2 text-success">
-                            <span>Desconto</span>
-                            <span>0.00€</span>
-                        </div>
-                        <div class="divider"></div>
-                        <div class="flex justify-between text-2xl font-black mb-6">
+                        <div class="flex justify-between mb-2 text-2xl font-black mb-6">
                             <span>Total</span>
                             <span>{{ count($cartItems) * 15 }}.00€</span>
                         </div>
 
-                        {{-- NOVO FORMULÁRIO COM MORADA --}}
                         <form action="{{ route('checkout.process') }}" method="POST" class="space-y-4">
                             @csrf
                             <div class="form-control w-full">
-                                <label class="label">
-                                    <span class="label-text font-bold text-gray-700">Morada de Entrega</span>
-                                </label>
-                                <input type="text" name="address" placeholder="Rua, Nº, Código Postal, Cidade" 
-                                       class="input input-bordered w-full focus:border-primary" required>
+                                <label class="label"><span class="label-text font-bold text-gray-700">Morada de Entrega</span></label>
+                                <input type="text" name="address" placeholder="Rua, Nº, Código Postal, Cidade" class="input input-bordered w-full" required>
                             </div>
-                            
-                            <button type="submit" class="btn btn-primary btn-block text-white font-bold shadow-lg">
-                                Finalizar Compra
-                            </button>
+                            <button type="submit" class="btn btn-primary btn-block text-white font-bold">Finalizar Compra</button>
                         </form>
-                        
-                        <p class="text-[10px] text-center mt-4 opacity-50 uppercase tracking-widest">Processamento Seguro Inovcorp</p>
                     </div>
                 </div>
             </div>
         @else
             <div class="alert shadow-lg bg-base-100 border-l-4 border-info">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-info shrink-0 w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 <div>
                     <h3 class="font-bold">O seu carrinho está vazio!</h3>
-                    <div class="text-xs">Explore a nossa biblioteca e adicione alguns exemplares.</div>
+                    <a href="{{ route('dashboard') }}" class="btn btn-sm btn-primary mt-2">Ver Livros</a>
                 </div>
-                <a href="{{ route('dashboard') }}" class="btn btn-sm btn-primary">Ver Livros</a>
             </div>
         @endif
     </div>

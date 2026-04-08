@@ -22,7 +22,6 @@ class CartController extends Controller
     {
         $book = Book::findOrFail($id);
 
-        // --- MELHORIA: Verificar se já existe no carrinho ---
         $exists = Cart::where('user_id', Auth::id())->where('book_id', $id)->exists();
         if ($exists) {
             return redirect()->back()->with('info', 'Este livro já está no seu carrinho!');
@@ -31,32 +30,39 @@ class CartController extends Controller
         // 1. Atualiza a Sessão
         $cart = session()->get('cart', []);
         $cart[$id] = [
-            "name" => $book->title ?? $book->name,
+            "name" => $book->title,
             "quantity" => 1,
-            "price" => 15.00,
-            "image" => $book->image_url ?? $book->image_link ?? ''
+            "price" => 15.00
         ];
         session()->put('cart', $cart);
 
         // 2. Persistência na Base de Dados
-        Cart::updateOrCreate(
-            ['user_id' => Auth::id(), 'book_id' => $id],
-            ['updated_at' => now()]
-        );
+        Cart::create([
+            'user_id' => Auth::id(),
+            'book_id' => $id
+        ]);
 
-        return redirect()->route('cart.index')->with('success', 'Livro adicionado ao carrinho!');
+        return redirect()->route('cart.index')->with('success', 'Livro adicionado!');
     }
 
     public function destroy($id)
     {
-        $cart = session()->get('cart', []);
-        if(isset($cart[$id])) {
-            unset($cart[$id]);
-            session()->put('cart', $cart);
+        // Encontra o item pelo ID da tabela 'carts'
+        $cartItem = Cart::where('id', $id)->where('user_id', Auth::id())->first();
+
+        if ($cartItem) {
+            // Remove da Sessão também usando o book_id
+            $cart = session()->get('cart', []);
+            if(isset($cart[$cartItem->book_id])) {
+                unset($cart[$cartItem->book_id]);
+                session()->put('cart', $cart);
+            }
+
+            // Remove da Base de Dados
+            $cartItem->delete();
+            return redirect()->back()->with('success', 'Item removido do carrinho.');
         }
 
-        Cart::where('user_id', Auth::id())->where('book_id', $id)->delete();
-
-        return redirect()->back()->with('success', 'Item removido do carrinho.');
+        return redirect()->back()->with('error', 'Item não encontrado.');
     }
 }

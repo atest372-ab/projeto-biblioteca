@@ -2,7 +2,7 @@
     <flux:sidebar.profile
         :name="auth()->user()->name"
         :initials="auth()->user()->initials()"
-        icon:trailing="chevrons-up-down"
+        icon-trailing="chevrons-up-down"
         data-test="sidebar-menu-button"
     />
 
@@ -17,11 +17,15 @@
                 <flux:text class="truncate">{{ auth()->user()->email }}</flux:text>
             </div>
         </div>
+
         <flux:menu.separator />
+
         <flux:menu.radio.group>
-            <flux:menu.item :href="route('profile.edit')" icon="cog" wire:navigate>
+            {{-- Substituído route('profile.edit') por '#' para evitar o erro de rota não definida --}}
+            <flux:menu.item href="#" icon="cog">
                 {{ __('Settings') }}
             </flux:menu.item>
+
             <form method="POST" action="{{ route('logout') }}" class="w-full">
                 @csrf
                 <flux:menu.item

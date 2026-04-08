@@ -38,4 +38,10 @@ return [
     'google' => [
         'books_key' => env('GOOGLE_BOOKS_API_KEY'),
     ],
+
+    'stripe' => [
+        'model' => App\Models\User::class,
+        'key' => env('STRIPE_KEY'),
+        'secret' => env('STRIPE_SECRET'),
+    ],
 ];
