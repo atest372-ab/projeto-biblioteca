@@ -13,7 +13,13 @@ return new class extends Migration
     {
         Schema::create('logs', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+            $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
+            $table->string('modulo'); // Ex: Livros, Requisições, Carrinho
+            $table->unsignedBigInteger('objeto_id')->nullable(); // ID do livro ou requisição
+            $table->text('alteracao'); // Descrição do que mudou
+            $table->string('ip');
+            $table->string('browser');
+            $table->timestamps(); // Já inclui Data e Hora automaticamente (create_at)
         });
     }
 

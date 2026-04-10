@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Book;
 use App\Models\Cart;
+use App\Models\Log; // Importação necessária
 use Illuminate\Support\Facades\Auth;
 
 class CartController extends Controller
@@ -42,6 +43,9 @@ class CartController extends Controller
             'book_id' => $id
         ]);
 
+        // --- FASE 6: REGISTO DE LOG ---
+        Log::record('Carrinho', $id, "Utilizador adicionou o livro '{$book->title}' ao carrinho.");
+
         return redirect()->route('cart.index')->with('success', 'Livro adicionado!');
     }
 
@@ -51,12 +55,18 @@ class CartController extends Controller
         $cartItem = Cart::where('id', $id)->where('user_id', Auth::id())->first();
 
         if ($cartItem) {
+            // Carregamos o livro antes de eliminar para ter o título no Log
+            $tituloLivro = $cartItem->book->title ?? 'ID: ' . $cartItem->book_id;
+
             // Remove da Sessão também usando o book_id
             $cart = session()->get('cart', []);
             if(isset($cart[$cartItem->book_id])) {
                 unset($cart[$cartItem->book_id]);
                 session()->put('cart', $cart);
             }
+
+            // --- FASE 6: REGISTO DE LOG (Antes de eliminar) ---
+            Log::record('Carrinho', $cartItem->book_id, "Utilizador removeu o livro '{$tituloLivro}' do carrinho.");
 
             // Remove da Base de Dados
             $cartItem->delete();
