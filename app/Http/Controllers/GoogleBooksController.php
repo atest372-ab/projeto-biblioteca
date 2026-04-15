@@ -67,6 +67,10 @@ class GoogleBooksController extends Controller
                 'publisher_id'  => 1,
             ]);
 
+            // --- FASE 6: REGISTO DE LOG ---
+            // Aqui usamos 'Livros' como módulo e o ID do novo Livro
+            \App\Models\Log::record('Livros', $book->id, "Admin importou o livro '{$book->title}' via Google Books.");
+
             // Associar ao autor padrão (ID 1) para não dar erro na Dashboard
             $book->authors()->attach($autor->id);
 

@@ -13,6 +13,11 @@
                 <flux:navbar.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                     {{ __('Dashboard') }}
                 </flux:navbar.item>
+                
+                {{-- Novo Item no Navbar Desktop --}}
+                <flux:navbar.item icon="shield-check" :href="route('admin.logs.index')" :current="request()->routeIs('admin.logs.*')" wire:navigate>
+                    {{ __('Auditoria') }}
+                </flux:navbar.item>
             </flux:navbar>
 
             <flux:spacer />
@@ -44,7 +49,6 @@
             <x-desktop-user-menu />
         </flux:header>
 
-        <!-- Mobile Menu -->
         <flux:sidebar collapsible="mobile" sticky class="lg:hidden border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:sidebar.header>
                 <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
@@ -55,6 +59,11 @@
                 <flux:sidebar.group :heading="__('Platform')">
                     <flux:sidebar.item icon="layout-grid" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>
                         {{ __('Dashboard')  }}
+                    </flux:sidebar.item>
+                    
+                    {{-- Novo Item no Mobile --}}
+                    <flux:sidebar.item icon="shield-check" :href="route('admin.logs.index')" :current="request()->routeIs('admin.logs.*')" wire:navigate>
+                        {{ __('Auditoria') }}
                     </flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>

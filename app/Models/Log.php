@@ -25,12 +25,12 @@ class Log extends Model
      * Helper centralizado para registar ações no sistema.
      * Pode ser chamado de qualquer lugar: Log::record('Livros', 1, 'Eliminou o livro');
      */
-    public static function record($modulo, $objetoId, $alteracao)
+    public static function record($modulo, $objeto_id, $alteracao)
     {
         return self::create([
             'user_id'   => Auth::id(), // Fica null se o user não estiver logado
             'modulo'    => $modulo,
-            'objeto_id' => $objetoId,
+            'objeto_id' => $objeto_id,
             'alteracao' => $alteracao,
             'ip'        => Request::ip(),
             'browser'   => Request::header('User-Agent'),

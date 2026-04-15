@@ -11,9 +11,12 @@
 
             <flux:sidebar.nav>
                 <flux:sidebar.group heading="Plataforma">
-                    <flux:sidebar.item icon="home" :href="route('dashboard')">Dashboard</flux:sidebar.item>
+                    <flux:sidebar.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')">Dashboard</flux:sidebar.item>
                     <flux:sidebar.item icon="book-open" :href="route('dashboard')">Livros</flux:sidebar.item>
-                    <flux:sidebar.item icon="shopping-cart" :href="route('admin.orders.index')">Encomendas Admin</flux:sidebar.item>
+                    <flux:sidebar.item icon="shopping-cart" :href="route('admin.orders.index')" :current="request()->routeIs('admin.orders.*')">Encomendas Admin</flux:sidebar.item>
+                    
+                    {{-- Novo Item de Auditoria --}}
+                    <flux:sidebar.item icon="shield-check" :href="route('admin.logs.index')" :current="request()->routeIs('admin.logs.*')">Auditoria</flux:sidebar.item>
                 </flux:sidebar.group>
             </flux:sidebar.nav>
 

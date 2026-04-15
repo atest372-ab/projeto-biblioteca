@@ -49,7 +49,7 @@ class CheckoutController extends Controller
         return back()->with('success', 'Pedido removido com sucesso!');
     }
 
-    private function createStripeSession($order, $total): string
+    private function createStripeSession(\App\Models\Order $order, float $total): string
     {
         Stripe::setApiKey(config('services.stripe.secret') ?? env('STRIPE_SECRET'));
 

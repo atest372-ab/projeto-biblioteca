@@ -32,6 +32,7 @@
                 @if(Auth::user()->role === 'admin') 
                     <li><a href="{{ route('google.search') }}" class="bg-accent text-accent-content font-bold">Google API</a></li> 
                     <li><a href="/admin/reviews" class="bg-warning text-warning-content font-bold">Moderar Reviews</a></li>
+                    <li><a href="{{ route('admin.logs.index') }}" class="bg-slate-700 text-white font-bold">Logs</a></li>
                 @endif
                 
                 <li><a href="{{ route('autores.index') }}">Autores</a></li>
@@ -71,6 +72,7 @@
         <div class="card bg-base-100 shadow-xl">
             <div class="card-body">
                 @if(session('success')) <div class="alert alert-success mb-4 text-white font-bold">{{ session('success') }}</div> @endif
+                @if(session('error')) <div class="alert alert-error mb-4 text-white font-bold">{{ session('error') }}</div> @endif
                 @if(session('info')) <div class="alert alert-info mb-4 text-white font-bold">{{ session('info') }}</div> @endif
                 
                 <div class="flex justify-between items-center mb-4">
@@ -79,14 +81,45 @@
                 </div>
                 <div class="overflow-x-auto">
                     <table class="table table-zebra w-full">
-                        <thead><tr><th>ISBN</th><th>Título</th><th>Estado</th><th class="text-right">Ação</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th>ISBN</th>
+                                <th>Título</th>
+                                <th>Stock</th> <th>Estado</th>
+                                <th class="text-right">Ação</th>
+                            </tr>
+                        </thead>
                         <tbody>
                             @foreach($livros as $livro)
-                            @php $estaRequisitado = \App\Models\Requisicao::where('book_id', $livro->id)->whereNull('data_rececao_real')->exists(); @endphp
+                            @php 
+                                $estaRequisitadoPeloUser = \App\Models\Requisicao::where('book_id', $livro->id)
+                                                            ->where('user_id', Auth::id())
+                                                            ->whereNull('data_rececao_real')
+                                                            ->exists(); 
+                            @endphp
                             <tr>
                                 <td><code class="text-xs text-blue-600">{{ $livro->isbn }}</code></td>
-                                <td class="font-bold"><a href="{{ route('livros.show', $livro->id) }}" class="text-primary hover:underline">{{ $livro->title ?? $livro->name }}</a></td>
-                                <td><span class="badge {{ $estaRequisitado ? 'badge-error' : 'badge-success' }} text-white text-xs">{{ $estaRequisitado ? 'Indisponível' : 'Disponível' }}</span></td>
+                                <td class="font-bold">
+                                    <a href="{{ route('livros.show', $livro->id) }}" class="text-primary hover:underline">
+                                        {{ $livro->title ?? $livro->name }}
+                                    </a>
+                                </td>
+                                
+                                {{-- VISUALIZAÇÃO DO STOCK --}}
+                                <td>
+                                    <span class="font-mono font-bold {{ $livro->stock <= 0 ? 'text-error' : 'text-success' }}">
+                                        {{ $livro->stock }} un.
+                                    </span>
+                                </td>
+
+                                <td>
+                                    @if($livro->stock > 0)
+                                        <span class="badge badge-success text-white text-xs">Disponível</span>
+                                    @else
+                                        <span class="badge badge-error text-white text-xs">Sem Stock</span>
+                                    @endif
+                                </td>
+
                                 <td class="text-right flex justify-end gap-2 items-center">
                                     {{-- COMPRAR --}}
                                     <form action="{{ route('cart.add', $livro->id) }}" method="POST">
@@ -94,17 +127,21 @@
                                         <button type="submit" class="btn btn-secondary btn-xs">🛒 Comprar</button>
                                     </form>
 
-                                    {{-- REQUISITAR (Se disponível) --}}
-                                    @if(!$estaRequisitado) 
+                                    {{-- REQUISITAR --}}
+                                    @if($estaRequisitadoPeloUser)
+                                        <span class="text-xs italic text-gray-400">Já requisitado</span>
+                                    @elseif($livro->stock > 0)
                                         <a href="{{ route('livro.requisitar', $livro->id) }}" class="btn btn-primary btn-xs text-white">Requisitar</a> 
+                                    @else
+                                        <button class="btn btn-ghost btn-xs text-error opacity-50 cursor-not-allowed" disabled>Esgotado</button>
                                     @endif
 
-                                    {{-- ELIMINAR (Apenas Admin) --}}
+                                    {{-- ELIMINAR (Admin) --}}
                                     @if(Auth::user()->role === 'admin')
                                         <form action="{{ route('livros.destroy', $livro->id) }}" method="POST" onsubmit="return confirm('Apagar este livro?');">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-error btn-xs text-white">🗑️ Eliminar</button>
+                                            <button type="submit" class="btn btn-error btn-xs text-white">🗑️</button>
                                         </form>
                                     @endif
                                 </td>

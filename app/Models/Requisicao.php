@@ -12,8 +12,14 @@ class Requisicao extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'book_id', 'numero_sequencial', 
-        'data_inicio', 'data_fim_prevista', 'foto_cidadao'
+        'user_id',
+        'book_id', 
+        'numero_sequencial', 
+        'data_inicio', 
+        'data_fim_prevista', 
+        'data_rececao_real',
+        'foto_cidadao',
+        'dias_decorridos',
     ];
 
     protected static function booted()

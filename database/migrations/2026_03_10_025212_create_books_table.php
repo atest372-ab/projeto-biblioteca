@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('cover_image')->nullable();
             $table->decimal('price', 8, 2);
             $table->unsignedBigInteger('publisher_id')->nullable();
+            $table->integer('stock')->default(1);
             $table->timestamps();
         });
     }

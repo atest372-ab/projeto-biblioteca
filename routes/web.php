@@ -11,6 +11,7 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\AlertController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\Admin\LogController; // Adicionado para a Fase 6
 
 // Outros
 use App\Models\Book;
@@ -36,7 +37,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // ROTAS LIVROS
     Route::get('/autores', function () { return view('autores'); })->name('autores.index');
     Route::get('/editoras', function () { return view('editoras'); })->name('editoras.index');
-    Route::get('livros', function () { return redirect()->route('dashboard'); })->name('livros.index')->name('books.index');
+    Route::get('livros', function () { return redirect()->route('dashboard'); })->name('books.index');
     Route::get('/livros/{book}', [GoogleBooksController::class, 'show'])->name('livros.show');
     Route::delete('/livros/{book}', function (Book $book) {
         $book->delete();
@@ -69,8 +70,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/meus-pedidos', function (Request $request) {
         if ($request->has('success') && $request->has('order_id')) {
             $order = Order::where('id', $request->order_id)
-                          ->where('user_id', Auth::id())
-                          ->first();
+                         ->where('user_id', Auth::id())
+                         ->first();
             if ($order) {
                 $order->update(['status' => 'pago']);
             }
@@ -80,13 +81,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('orders.my-orders');
 });
 
-// 6. ADMIN
+// 6. ADMIN & AUDITORIA (FASE 6)
 Route::middleware(['auth'])->group(function () {
     Route::get('/admin/reviews', [ReviewController::class, 'index'])->name('admin.reviews.index');
     Route::patch('/admin/reviews/{review}/status', [ReviewController::class, 'updateStatus'])->name('admin.reviews.update');
     Route::patch('/requisicoes/{id}/entregar', [RequisicaoController::class, 'entregar'])->name('requisicoes.entregar');
+    
     Route::get('/admin/orders', function() {
         $orders = Order::with('user')->latest()->get();
         return view('admin.orders.index', compact('orders'));
     })->name('admin.orders.index');
+
+    // NOVA ROTA DE LOGS
+    Route::get('/admin/logs', [LogController::class, 'index'])->name('admin.logs.index');
 });

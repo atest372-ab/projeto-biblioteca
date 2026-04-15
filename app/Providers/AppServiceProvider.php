@@ -2,9 +2,12 @@
 
 namespace App\Providers;
 
+use App\Models\Log;
 use Carbon\CarbonImmutable;
+use Illuminate\Auth\Events\Login;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -24,6 +27,16 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+
+        // Removi os comentários problemáticos e deixei o código limpo
+        // Se o erro 419 persistir, voltamos aqui, mas primeiro precisamos tirar o erro de sintaxe
+        Event::listen(Login::class, function ($event) {
+            Log::record(
+                'Autenticação',
+                $event->user->id,
+                "O Utilizador '{$event->user->name}' iniciou sessão no sistema."
+            );
+        });
     }
 
     /**
